@@ -7,6 +7,8 @@ $mysql_database = 'moodle';
 $mysql_user = 'root';
 $mysql_password = 'reset@123';
 
+
+
 $conn = mysqli_connect($mysql_host,$mysql_user,$mysql_password,$mysql_database);
 
 if (!$conn)
@@ -60,6 +62,19 @@ switch($_GET['method'])
 		else
 		{
 			$post_data=array('message'=>'missing parameters','comment'=>'require param [user_name,password]');
+			$post_data = json_encode(array('error' => $post_data), JSON_FORCE_OBJECT);
+			echo $post_data;
+		}		
+	break;
+	
+	case 'get_attendance':
+		if(isset($_GET['session_id']) && $_GET['session_id']!="")
+		{
+			getAttendance($conn,$_GET['session_id']);
+		}
+		else
+		{
+			$post_data=array('message'=>'missing parameters','comment'=>'require param [session_id]');
 			$post_data = json_encode(array('error' => $post_data), JSON_FORCE_OBJECT);
 			echo $post_data;
 		}		
@@ -380,7 +395,94 @@ function login($conn,$userName,$password)
 									}
 								}
 								
-								$courses[]=array('id'=>$courseId,'full_name'=>$courseFullName,'short_name'=>$courseShortName,'enrolled_students'=>$students);
+								
+								
+								$query="SELECT * FROM mdl_attendance WHERE course LIKE $courseId";
+								
+								$result=mysqli_query($conn,$query);
+								
+								if(!$result)
+								{
+									$post_data=array('message'=>mysqli_errno($conn) . ": " . mysqli_error($conn),'comment'=>'while performing SELECT query');
+									$post_data = json_encode(array('error' => $post_data), JSON_FORCE_OBJECT);
+									echo $post_data;
+								}
+								else
+								{
+									if(mysqli_num_rows($result)>0)
+									{
+										while($row =mysqli_fetch_array($result))
+										{
+											//echo 'inside it!!';
+											
+											$val=$row['id'];
+											
+											$query2="SELECT * FROM mdl_attendance_sessions WHERE attendanceid LIKE $val";
+											
+											$result2=mysqli_query($conn,$query2);
+											
+											if(!$result2)
+											{
+												$post_data=array('message'=>mysqli_errno($conn) . ": " . mysqli_error($conn),'comment'=>'while performing SELECT query');
+												$post_data = json_encode(array('error' => $post_data), JSON_FORCE_OBJECT);
+												echo $post_data;
+											}
+											else
+											{
+												if(mysqli_num_rows($result2)>0)
+												{
+													while($row2 =mysqli_fetch_array($result2))
+													{
+														
+														$sessions[]=array('id'=>$row2['id'],'groupid'=>$row2['groupid'],'sessdate'=>$row2['sessdate'],'duration'=>$row2['duration'],'lasttaken'=>$row2['lasttaken'],'lasttakenby'=>$row2['lasttakenby'],'timemodified'=>$row2['timemodified'],'description'=>$row2['description'],'descriptionformat'=>$row2['descriptionformat'],'studentscanmark'=>$row2['studentscanmark']);
+													}
+													
+												}
+												else
+												{
+													//echo "INSIDE!!!";
+													$sessions[]=array('id'=>NULL,'groupid'=>NULL,'sessdate'=>NULL,'duration'=>NULL,'lasttaken'=>NULL,'lasttakenby'=>NULL,'timemodified'=>NULL,'description'=>NULL,'descriptionformat'=>NULL,'studentscanmark'=>NULL);
+												}
+												
+											}
+
+											
+											$query3="SELECT * FROM mdl_attendance_statuses WHERE attendanceid LIKE $val";
+											
+											$result3=mysqli_query($conn,$query3);
+											
+											if(!$result3)
+											{
+												$post_data=array('message'=>mysqli_errno($conn) . ": " . mysqli_error($conn),'comment'=>'while performing SELECT query');
+												$post_data = json_encode(array('error' => $post_data), JSON_FORCE_OBJECT);
+												echo $post_data;
+											}
+											else
+											{
+												if(mysqli_num_rows($result3)>0)
+												{
+													while($row3 =mysqli_fetch_array($result3))
+													{
+														$status[]=array('id'=>$row3['id'],'acronym'=>$row3['acronym'],'description'=>$row3['description'],'grade'=>$row3['grade'],'visible'=>$row3['visible'],'deleted'=>$row3['deleted']);
+													}
+													
+												}
+												
+											}
+											
+											$attendance[]=array('id'=>$row['id'],'name'=>$row['name'],'grade'=>$row['grade'],'sessions'=>$sessions,'statuses'=>$status);
+											$courses[]=array('id'=>$courseId,'full_name'=>$courseFullName,'short_name'=>$courseShortName,'attendance'=>$attendance,'enrolled_students'=>$students);											
+										}
+																				
+									}
+									else
+									{
+										
+										$courses[]=array('id'=>$courseId,'full_name'=>$courseFullName,'short_name'=>$courseShortName,'attendance'=>NULL,'enrolled_students'=>$students);
+									}
+								}
+								
+								
 							}
 						}
 					}
@@ -436,9 +538,120 @@ function login($conn,$userName,$password)
 			}
 		}
 		
+		
+		
+		
 		$post_data=array('id'=>$userId,'user_name'=>$userName,'first_name'=>$firstName,'last_name'=>$lastName,'full_name'=>$fullName,'profile_pic_url'=>$profilePic,'role_id'=>$roleId,'role_short_name'=>$roleShortName,'course'=>$courses);
 		$post_data = json_encode(array('user' => $post_data));
 		echo $post_data;
+		
+	
+}
+
+
+function getAttendance($conn,$sessionId)
+{
+
+	$query="SELECT * FROM mdl_attendance_log WHERE sessionid LIKE $sessionId";
+	
+	$result=mysqli_query($conn,$query);
+	
+	if(!$result)
+	{
+		$post_data=array('message'=>mysqli_errno($conn) . ": " . mysqli_error($conn),'comment'=>'while performing SELECT query');
+		$post_data = json_encode(array('error' => $post_data), JSON_FORCE_OBJECT);
+		echo $post_data;
+	}
+	else
+	{
+		if(mysqli_num_rows($result)>0)
+		{
+			while($row =mysqli_fetch_array($result))
+			{
+				$studentId=$row['studentid'];
+				
+				$query2="SELECT * FROM mdl_user WHERE id LIKE $studentId";
+	
+				$result2=mysqli_query($conn,$query2);
+				
+				if(!$result2)
+				{
+					$post_data=array('message'=>mysqli_errno($conn) . ": " . mysqli_error($conn),'comment'=>'while performing SELECT query');
+					$post_data = json_encode(array('error' => $post_data), JSON_FORCE_OBJECT);
+					echo $post_data;
+				}
+				else
+				{
+					if(mysqli_num_rows($result2)>0)
+					{
+						while($row2 =mysqli_fetch_array($result2))
+						{
+							$statusId=$row['statusid'];
+							
+							$query3="SELECT * FROM mdl_attendance_statuses WHERE id LIKE $statusId";
+	
+							$result3=mysqli_query($conn,$query3);
+							
+							if(!$result3)
+							{
+								$post_data=array('message'=>mysqli_errno($conn) . ": " . mysqli_error($conn),'comment'=>'while performing SELECT query');
+								$post_data = json_encode(array('error' => $post_data), JSON_FORCE_OBJECT);
+								echo $post_data;
+							}
+							else
+							{
+								if(mysqli_num_rows($result3)>0)
+								{
+									$row3 =mysqli_fetch_array($result3);
+									
+									$attendanceid=$row3['attendanceid'];
+									$acronym=$row3['acronym'];
+									$description=$row3['description'];
+									$grade=$row3['grade'];
+									$visible=$row3['visible'];
+									$deleted=$row3['deleted'];
+									
+								}
+							}
+							
+							$takenById=$row['takenby'];
+							
+							$query3="SELECT * FROM mdl_user WHERE id LIKE $takenById";
+	
+							$result3=mysqli_query($conn,$query3);
+							
+							if(!$result3)
+							{
+								$post_data=array('message'=>mysqli_errno($conn) . ": " . mysqli_error($conn),'comment'=>'while performing SELECT query');
+								$post_data = json_encode(array('error' => $post_data), JSON_FORCE_OBJECT);
+								echo $post_data;
+							}
+							else
+							{
+								if(mysqli_num_rows($result3)>0)
+								{
+									$row4=mysqli_fetch_array($result3);
+									$takenBy=array('id'=>$row4['id'],'first_name'=>$row4['firstname'],'last_name'=>$row4['lastname'],'user_name'=>$row4['username']);
+								}
+								
+							}
+							
+							
+							$student[]=array('id'=>$row2['id'],'first_name'=>$row2['firstname'],'last_name'=>$row2['lastname'],'user_name'=>$row2['username'],'remarks'=>$row['remarks'],'staus_set'=>$row['statusset'],'time_taken'=>$row['timetaken'],'acronym'=>$acronym,'description'=>$description,'taken_by'=>$takenBy);
+						}
+					}
+				}
+				
+			}
+				
+		}
+		
+		$post_data=array('student'=>$student);
+		$post_data = json_encode(array('attendance' => $post_data));
+		echo $post_data;	
+		
+	}	
+	
 		
 	
 }
