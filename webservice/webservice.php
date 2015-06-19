@@ -7,8 +7,6 @@ $mysql_database = 'moodle';
 $mysql_user = 'root';
 $mysql_password = 'reset@123';
 
-
-
 $conn = mysqli_connect($mysql_host,$mysql_user,$mysql_password,$mysql_database);
 
 if (!$conn)
