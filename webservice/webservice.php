@@ -2,14 +2,23 @@
 		//include basic functions for attendance get,set,insert,update,delete,modify....
 		//includes DB connection
 		
-$mysql_host = '';
-$mysql_database = '';
-$mysql_user = '';
-$mysql_password = '';
+		
+
+$user_name = "";	// user name for moodle database
+$password = "";		// password for moodle database
+$database = "";		// moodle database name(eg: moodle)
+$server = "";		// server address / host name used to access moodle or on which moodle is setup (eg: "localhost" or "127.0.0.1" or "yourdomain.com/moodle")
 
 
 
-$conn = mysqli_connect($mysql_host,$mysql_user,$mysql_password,$mysql_database);
+$conn = mysqli_connect($server, $user_name, $password,$database);
+
+
+
+$query = "use $database";
+$result = mysqli_query($conn,$query);
+
+
 
 if (!$conn)
 {
@@ -19,8 +28,8 @@ if (!$conn)
 }
 else
 {
-	$query="SELECT * FROM mdl_attendance";
 	
+	$query= "SELECT * FROM mdl_attendance";	
 	$result=mysqli_query($conn,$query);
 	
 	if(!$result) 
@@ -37,8 +46,6 @@ else
 
 if(isset($_GET['method']) && $_GET['method']!="")
 {
-			
-
 
 	switch($_GET['method'])
 	{
@@ -344,7 +351,7 @@ function login($conn,$userName,$password)
 		$profilePic="";
 		$courses=array();
 	
-		$url="http://localhost/login/token.php?username=$userName&password=$password&service=moodle_mobile_app";	
+		$url="http://localhost/moodle/login/token.php?username=$userName&password=$password&service=moodle_mobile_app";	
 		$data = file_get_contents($url); 		
 		$result = json_decode($data, true);
 		//var_dump($result);
@@ -359,7 +366,7 @@ function login($conn,$userName,$password)
 			die($post_data);
 		}
 		
-		$url="http://localhost/webservice/rest/server.php?wstoken=$token&wsfunction=moodle_webservice_get_siteinfo";		
+		$url="http://localhost/moodle/webservice/rest/server.php?wstoken=$token&wsfunction=moodle_webservice_get_siteinfo";		
 		$data = file_get_contents($url); 
 		//$result = json_decode($data, true);
 		$response = new SimpleXMLElement($data);
@@ -409,7 +416,7 @@ function login($conn,$userName,$password)
 					foreach($child2->children() as $child3)
 					{
 						$profilePic=(string)$child3;
-						$profilePic=str_replace("localhost","rutvik.ddns.net",$profilePic);
+						$profilePic=str_replace("localhost/moodle","yourdomain.com",$profilePic);
 					}
 				}
 				/*foreach($child2->children() as $child3)
@@ -474,7 +481,7 @@ function login($conn,$userName,$password)
 		
 		
 		
-		$url="http://localhost/webservice/rest/server.php?wstoken=$token&wsfunction=moodle_user_get_users_by_id&userids[0]=$userId";
+		$url="http://localhost/moodle/webservice/rest/server.php?wstoken=$token&wsfunction=moodle_user_get_users_by_id&userids[0]=$userId";
 		
 		$data = file_get_contents($url); 
 		//$result = json_decode($data, true);
@@ -532,7 +539,7 @@ function login($conn,$userName,$password)
 								if($roleShortName!="student")
 								{
 								
-									$url2="http://localhost/webservice/rest/server.php?wstoken=$token&wsfunction=moodle_enrol_get_enrolled_users&courseid=$courseId";
+									$url2="http://localhost/moodle/webservice/rest/server.php?wstoken=$token&wsfunction=moodle_enrol_get_enrolled_users&courseid=$courseId";
 									
 									$data2 = file_get_contents($url2); 
 									//$result = json_decode($data, true);
@@ -540,6 +547,8 @@ function login($conn,$userName,$password)
 									//var_dump($response);
 									
 									$response2->getName();
+									
+									$students=array();
 									
 									foreach($response2->children() as $c)
 									{
@@ -617,6 +626,8 @@ function login($conn,$userName,$password)
 								
 								
 									$query="SELECT * FROM mdl_attendance WHERE course LIKE $courseId";
+
+//echo $query."<br/><br/>";
 									
 									$result=mysqli_query($conn,$query);
 									
@@ -628,17 +639,30 @@ function login($conn,$userName,$password)
 									}
 									else
 									{
+										$attendance=array();
 										if(mysqli_num_rows($result)>0)
-										{
+										{											
 											while($row =mysqli_fetch_array($result))
 											{
 												//echo 'inside it!!';
 												
 												$val=$row['id'];
-												
+
+												//echo $val."<br/><br/><br/>";
+
+												$sessions2=getSessions($conn,$courseId,$val,true);
+
+												//var_dump($sessions2);
+
+
+												/*
 												$query2="SELECT * FROM mdl_attendance_sessions WHERE attendanceid LIKE $val";
 												
+
+												
 												$result2=mysqli_query($conn,$query2);
+
+
 												
 												if(!$result2)
 												{
@@ -652,7 +676,7 @@ function login($conn,$userName,$password)
 													{
 														while($row2 =mysqli_fetch_array($result2))
 														{
-															$desc=strip_tags($row2['description']);
+															$desc=strip_tags($row2['description']);													
 															$sessions[]=array('id'=>$row2['id'],'groupid'=>$row2['groupid'],'sessdate'=>$row2['sessdate'],'duration'=>$row2['duration'],'lasttaken'=>$row2['lasttaken'],'lasttakenby'=>$row2['lasttakenby'],'timemodified'=>$row2['timemodified'],'description'=>$desc,'descriptionformat'=>$row2['descriptionformat'],'studentscanmark'=>$row2['studentscanmark']);
 														}
 														
@@ -662,10 +686,13 @@ function login($conn,$userName,$password)
 														//echo "INSIDE!!!";
 														$sessions[]=array('id'=>NULL,'groupid'=>NULL,'sessdate'=>NULL,'duration'=>NULL,'lasttaken'=>NULL,'lasttakenby'=>NULL,'timemodified'=>NULL,'description'=>NULL,'descriptionformat'=>NULL,'studentscanmark'=>NULL);
 													}
+
 													
 												}
+
+*/
 	
-												
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////												
 												$query3="SELECT * FROM mdl_attendance_statuses WHERE attendanceid LIKE $val";
 												
 												$result3=mysqli_query($conn,$query3);
@@ -678,6 +705,7 @@ function login($conn,$userName,$password)
 												}
 												else
 												{
+													$status=array();
 													if(mysqli_num_rows($result3)>0)
 													{
 														while($row3 =mysqli_fetch_array($result3))
@@ -686,12 +714,16 @@ function login($conn,$userName,$password)
 														}
 														
 													}
+
+
 													
 												}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 												
-												$attendance[]=array('id'=>$row['id'],'name'=>$row['name'],'grade'=>$row['grade'],'sessions'=>$sessions,'statuses'=>$status);
-												$courses[]=array('id'=>$courseId,'full_name'=>$courseFullName,'short_name'=>$courseShortName,'attendance'=>$attendance,'enrolled_students'=>$students);											
+												$attendance[]=array('id'=>$row['id'],'name'=>$row['name'],'grade'=>$row['grade'],'sessions'=>$sessions2,'statuses'=>$status);
+																							
 											}
+$courses[]=array('id'=>$courseId,'full_name'=>$courseFullName,'short_name'=>$courseShortName,'attendance'=>$attendance,'enrolled_students'=>$students);
 																					
 										}
 										else
@@ -706,6 +738,8 @@ function login($conn,$userName,$password)
 								}
 								else
 								{
+									
+									
 									$query="SELECT * FROM mdl_attendance WHERE course LIKE $courseId";
 									
 									$result=mysqli_query($conn,$query);
@@ -718,6 +752,7 @@ function login($conn,$userName,$password)
 									}
 									else
 									{
+										$attendance=array();
 										if(mysqli_num_rows($result)>0)
 										{
 											while($row =mysqli_fetch_array($result))
@@ -725,6 +760,8 @@ function login($conn,$userName,$password)
 												$attendanceId=$row['id'];
 												
 												$query2="SELECT mdl_attendance_sessions.id,mdl_attendance_sessions.sessdate,mdl_attendance_sessions.duration,mdl_attendance_sessions.lasttaken,mdl_attendance_sessions.lasttakenby,mdl_attendance_sessions.lasttakenby,mdl_attendance_sessions.timemodified,mdl_attendance_sessions.description,mdl_attendance_log.statusid,mdl_attendance_log.remarks,mdl_attendance_log.timetaken,mdl_user.firstname,mdl_user.lastname,mdl_attendance_statuses.acronym,mdl_attendance_statuses.description AS sdesc FROM mdl_attendance_sessions LEFT JOIN mdl_attendance_log ON mdl_attendance_sessions.id = mdl_attendance_log.sessionid LEFT JOIN mdl_user ON mdl_attendance_sessions.lasttakenby = mdl_user.id LEFT JOIN mdl_attendance_statuses ON mdl_attendance_log.statusid = mdl_attendance_statuses.id WHERE mdl_attendance_sessions.attendanceid LIKE $attendanceId AND mdl_attendance_log.studentid LIKE $userId";
+												
+												//echo($query2);
 												
 												$result2=mysqli_query($conn,$query2);
 												
@@ -736,13 +773,16 @@ function login($conn,$userName,$password)
 												}
 												else
 												{
+													$sessions=array();
 													if(mysqli_num_rows($result2)>0)
 													{
 														while($row2=mysqli_fetch_array($result2))
 														{
+															
 															$sessions[]=array('id'=>$row2['id'],'session_date'=>$row2['sessdate'],'duration'=>$row2['duration'],'lasttaken'=>$row2['lasttaken'],'lasttakenby'=>$row2['lasttakenby'],'first_name'=>$row2['firstname'],'last_name'=>$row2['lastname'],'timemodified'=>$row2['timemodified'],'description'=>strip_tags($row2['description']),'statusid'=>$row2['statusid'],'acronym'=>$row2['acronym'],'desc'=>$row2['sdesc'],'remarks'=>$row2['remarks'],'timetaken'=>$row2['timetaken']);
 														}
 													}
+												
 												}
 												
 												$query3="SELECT * FROM mdl_attendance_statuses WHERE attendanceid LIKE $attendanceId";
@@ -818,7 +858,7 @@ function getAttendance($conn,$token,$sessionId)
 	
 	$userId="";
 	
-	$url="http://localhost/webservice/rest/server.php?wstoken=$token&wsfunction=moodle_webservice_get_siteinfo";		
+	$url="http://localhost/moodle/webservice/rest/server.php?wstoken=$token&wsfunction=moodle_webservice_get_siteinfo";		
 	$data = file_get_contents($url); 
 	//$result = json_decode($data, true);
 	$response = new SimpleXMLElement($data);
@@ -967,7 +1007,7 @@ function test($conn,$userName,$password)
 		$profilePic="";
 		$courses;
 	
-		$url="http://localhost/login/token.php?username=$userName&password=$password&service=moodle_mobile_app";	
+		$url="http://localhost/moodle/login/token.php?username=$userName&password=$password&service=moodle_mobile_app";	
 		$data = file_get_contents($url); 		
 		$result = json_decode($data, true);
 		//var_dump($result);
@@ -975,7 +1015,7 @@ function test($conn,$userName,$password)
 		
 		
 		
-		$url="http://localhost/webservice/rest/server.php?wstoken=$token&wsfunction=moodle_webservice_get_siteinfo";		
+		$url="http://localhost/moodle/webservice/rest/server.php?wstoken=$token&wsfunction=moodle_webservice_get_siteinfo";		
 		$data = file_get_contents($url); 
 		//$result = json_decode($data, true);
 		$response = new SimpleXMLElement($data);
@@ -1089,7 +1129,7 @@ function test($conn,$userName,$password)
 		
 		
 		
-		$url="http://localhost/webservice/rest/server.php?wstoken=56840502d9debd802e2dc6213f10b8c2&wsfunction=moodle_user_get_users_by_id&userids[0]=$userId";
+		$url="http://localhost/moodle/webservice/rest/server.php?wstoken=56840502d9debd802e2dc6213f10b8c2&wsfunction=moodle_user_get_users_by_id&userids[0]=$userId";
 		
 		$data = file_get_contents($url); 
 		//$result = json_decode($data, true);
@@ -1333,7 +1373,7 @@ function getCourses($conn,$token,$userId)
 {
 	$courses=array();
 	
-	$url="http://localhost/webservice/rest/server.php?wstoken=$token&wsfunction=moodle_user_get_users_by_id&userids[0]=$userId";
+	$url="http://localhost/moodle/webservice/rest/server.php?wstoken=$token&wsfunction=moodle_user_get_users_by_id&userids[0]=$userId";
 		
 	$data = file_get_contents($url); 
 	//$result = json_decode($data, true);
@@ -1409,6 +1449,8 @@ function getSessions($conn,$courseId,$attendanceTypeId,$flag=false)
 	$sessions=array();
 	
 	$query="SELECT * FROM mdl_attendance WHERE course LIKE $courseId AND id LIKE $attendanceTypeId";
+
+
 									
 	$result=mysqli_query($conn,$query);
 	
@@ -1429,6 +1471,8 @@ function getSessions($conn,$courseId,$attendanceTypeId,$flag=false)
 				$val=$row['id'];
 				
 				$query2="SELECT * FROM mdl_attendance_sessions WHERE attendanceid LIKE $val";
+
+//echo $query2."<br/><br/><br/>";
 				
 				$result2=mysqli_query($conn,$query2);
 				
@@ -1442,19 +1486,15 @@ function getSessions($conn,$courseId,$attendanceTypeId,$flag=false)
 				{
 					if(mysqli_num_rows($result2)>0)
 					{
+//echo "data<br/>";
 						while($row2 =mysqli_fetch_array($result2))
 						{
+							//echo $row2['id']."<br/><br/>";
 							$desc=strip_tags($row2['description']);
 							$sessions[]=array('id'=>$row2['id'],'groupid'=>$row2['groupid'],'sessdate'=>$row2['sessdate'],'duration'=>$row2['duration'],'lasttaken'=>$row2['lasttaken'],'lasttakenby'=>$row2['lasttakenby'],'timemodified'=>$row2['timemodified'],'description'=>$desc,'descriptionformat'=>$row2['descriptionformat'],'studentscanmark'=>$row2['studentscanmark']);
 						}
 						
-					}
-					else
-					{
-						//echo "INSIDE!!!";
-						$sessions[]=array('id'=>NULL,'groupid'=>NULL,'sessdate'=>NULL,'duration'=>NULL,'lasttaken'=>NULL,'lasttakenby'=>NULL,'timemodified'=>NULL,'description'=>NULL,'descriptionformat'=>NULL,'studentscanmark'=>NULL);
-					}
-					
+					}					
 				}
 			}
 		}
@@ -1463,6 +1503,7 @@ function getSessions($conn,$courseId,$attendanceTypeId,$flag=false)
 		
 		if($flag)
 		{
+			//var_dump($sessions);
 			return $sessions;
 		}
 		else
@@ -1481,7 +1522,7 @@ function getEnrolledStudents($conn,$token,$courseId)
 {
 	$students=array();
 	
-	$url2="http://localhost/webservice/rest/server.php?wstoken=$token&wsfunction=moodle_enrol_get_enrolled_users&courseid=$courseId";
+	$url2="http://localhost/moodle/webservice/rest/server.php?wstoken=$token&wsfunction=moodle_enrol_get_enrolled_users&courseid=$courseId";
 									
 	$data2 = file_get_contents($url2); 
 	//$result = json_decode($data, true);
@@ -1568,7 +1609,7 @@ function getEnrolledStudents($conn,$token,$courseId)
 
 function deleteSession($conn,$userName,$password,$sessionId)
 {
-	$url="http://localhost/login/token.php?username=$userName&password=$password&service=moodle_mobile_app";	
+	$url="http://localhost/moodle/login/token.php?username=$userName&password=$password&service=moodle_mobile_app";	
 	$data = file_get_contents($url); 		
 	$result = json_decode($data, true);
 	//var_dump($result);
@@ -1662,6 +1703,8 @@ function getAttendanceType($conn,$courseId)
 function getAttendanceStatus($conn,$attendanceId)
 {
 	$query="SELECT * FROM mdl_attendance_statuses WHERE attendanceid LIKE $attendanceId";
+
+
 												
 	$result=mysqli_query($conn,$query);
 	
