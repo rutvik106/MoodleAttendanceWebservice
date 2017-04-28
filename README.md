@@ -1,5 +1,9 @@
 # Moodle Attendance App
 
+
+[![](https://lh3.googleusercontent.com/o_P_dfpZN8Rd6tpOmc1csZtWdosjWVYhYT5sfrjd4PTypi5bo11Kp0EXlpWZ5TaJWBE=w100-rw)](https://play.google.com/store/apps/details?id=com.rutvik.moodleattendanceapp)
+
+
 Moodle Attendance is a customized Android  App for managing attendance of students online on moblie phones. It Requires Moodle Host with Mobile weservice enabled and Attendance Plugin installed. Additional Requirment are Moodle Attendance webservice file must be placed into root directory of Moodle.
 
 ### Bellow are the Guidelines to setup webservice
@@ -49,3 +53,8 @@ change it to:
 ```sh
 $CFG->wwwroot   = 'http://'.$_SERVER["HTTP_HOST"].'/moodle';
 ```
+
+##### Step-5
+Now just set the Moodle Host(Link using which you open Moodle) in Moodle Attendance App Settings as shown bellow.
+
+![](https://lh3.googleusercontent.com/SScpnptyAQ98PNm0ZmIAvjDFdKo_OV7__o3DA1aZhce8FpSvjWtBBsDynkgDEPoDGw=h500-rw)
