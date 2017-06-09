@@ -10,9 +10,8 @@ global $CFG;
 
 $conn = mysqli_connect($CFG->dbhost, $CFG->dbuser, $CFG->dbpass, $CFG->dbname);
 
-$sql1 = "use moodle";
+$sql1 = "use $CFG->dbname";
 $rs2 = mysqli_query($conn, $sql1);
-
 
 if (!$conn)
 {
@@ -22,7 +21,7 @@ if (!$conn)
 } else
 {
 
-    $query = "SELECT * FROM mdl_attendance";
+    $query = "SELECT * FROM " . $CFG->prefix . "attendance";
     $result = mysqli_query($conn, $query);
 
     if (!$result)
@@ -227,7 +226,9 @@ if (isset($_GET['method']) && $_GET['method'] != "")
 
 function getTableNames($conn)
 {
-    $query = "SHOW TABLES FROM moodle";
+    global $CFG;
+
+    $query = "SHOW TABLES FROM $CFG->dbname";
 
     $result = mysqli_query($conn, $query);
 
@@ -404,7 +405,7 @@ function login($conn, $userName, $password)
     }
 
 
-    $query = "SELECT roleid FROM mdl_role_assignments WHERE userid LIKE $userId LIMIT 1";
+    $query = "SELECT roleid FROM " . $CFG->prefix . "role_assignments WHERE userid LIKE $userId LIMIT 1";
 
     $result = mysqli_query($conn, $query);
 
@@ -421,7 +422,7 @@ function login($conn, $userName, $password)
             {
                 $roleId = $row['roleid'];
             }
-            $query2 = "SELECT shortname FROM mdl_role WHERE id LIKE $roleId LIMIT 1";
+            $query2 = "SELECT shortname FROM " . $CFG->prefix . "role WHERE id LIKE $roleId LIMIT 1";
 
             $result2 = mysqli_query($conn, $query2);
 
@@ -587,7 +588,7 @@ function login($conn, $userName, $password)
                                 }
 
 
-                                $query = "SELECT * FROM mdl_attendance WHERE course LIKE $courseId";
+                                $query = "SELECT * FROM " . $CFG->prefix . "attendance WHERE course LIKE $courseId";
 
 //echo $query."<br/><br/>";
 
@@ -653,8 +654,8 @@ function login($conn, $userName, $password)
 
 */
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                                            $query3 = "SELECT * FROM mdl_attendance_statuses WHERE attendanceid LIKE $val";
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////												
+                                            $query3 = "SELECT * FROM " . $CFG->prefix . "attendance_statuses WHERE attendanceid LIKE $val";
 
                                             $result3 = mysqli_query($conn, $query3);
 
@@ -697,7 +698,7 @@ function login($conn, $userName, $password)
                             {
 
 
-                                $query = "SELECT * FROM mdl_attendance WHERE course LIKE $courseId";
+                                $query = "SELECT * FROM " . $CFG->prefix . "attendance WHERE course LIKE $courseId";
 
                                 $result = mysqli_query($conn, $query);
 
@@ -715,7 +716,7 @@ function login($conn, $userName, $password)
                                         {
                                             $attendanceId = $row['id'];
 
-                                            $query2 = "SELECT mdl_attendance_sessions.id,mdl_attendance_sessions.sessdate,mdl_attendance_sessions.duration,mdl_attendance_sessions.lasttaken,mdl_attendance_sessions.lasttakenby,mdl_attendance_sessions.lasttakenby,mdl_attendance_sessions.timemodified,mdl_attendance_sessions.description,mdl_attendance_log.statusid,mdl_attendance_log.remarks,mdl_attendance_log.timetaken,mdl_user.firstname,mdl_user.lastname,mdl_attendance_statuses.acronym,mdl_attendance_statuses.description AS sdesc FROM mdl_attendance_sessions LEFT JOIN mdl_attendance_log ON mdl_attendance_sessions.id = mdl_attendance_log.sessionid LEFT JOIN mdl_user ON mdl_attendance_sessions.lasttakenby = mdl_user.id LEFT JOIN mdl_attendance_statuses ON mdl_attendance_log.statusid = mdl_attendance_statuses.id WHERE mdl_attendance_sessions.attendanceid LIKE $attendanceId AND mdl_attendance_log.studentid LIKE $userId";
+                                            $query2 = "SELECT " . $CFG->prefix . "attendance_sessions.id," . $CFG->prefix . "attendance_sessions.sessdate," . $CFG->prefix . "attendance_sessions.duration," . $CFG->prefix . "attendance_sessions.lasttaken," . $CFG->prefix . "attendance_sessions.lasttakenby," . $CFG->prefix . "attendance_sessions.lasttakenby," . $CFG->prefix . "attendance_sessions.timemodified," . $CFG->prefix . "attendance_sessions.description," . $CFG->prefix . "attendance_log.statusid," . $CFG->prefix . "attendance_log.remarks," . $CFG->prefix . "attendance_log.timetaken," . $CFG->prefix . "user.firstname," . $CFG->prefix . "user.lastname," . $CFG->prefix . "attendance_statuses.acronym," . $CFG->prefix . "attendance_statuses.description AS sdesc FROM " . $CFG->prefix . "attendance_sessions LEFT JOIN " . $CFG->prefix . "attendance_log ON " . $CFG->prefix . "attendance_sessions.id = " . $CFG->prefix . "attendance_log.sessionid LEFT JOIN " . $CFG->prefix . "user ON " . $CFG->prefix . "attendance_sessions.lasttakenby = " . $CFG->prefix . "user.id LEFT JOIN " . $CFG->prefix . "attendance_statuses ON " . $CFG->prefix . "attendance_log.statusid = " . $CFG->prefix . "attendance_statuses.id WHERE " . $CFG->prefix . "attendance_sessions.attendanceid LIKE $attendanceId AND " . $CFG->prefix . "attendance_log.studentid LIKE $userId";
 
                                             //echo($query2);
 
@@ -740,7 +741,7 @@ function login($conn, $userName, $password)
 
                                             }
 
-                                            $query3 = "SELECT * FROM mdl_attendance_statuses WHERE attendanceid LIKE $attendanceId";
+                                            $query3 = "SELECT * FROM " . $CFG->prefix . "attendance_statuses WHERE attendanceid LIKE $attendanceId";
 
                                             $result3 = mysqli_query($conn, $query3);
 
@@ -839,7 +840,7 @@ function getAttendance($conn, $token, $sessionId)
     }
 
 
-    $query = "SELECT * FROM mdl_attendance_log WHERE sessionid LIKE $sessionId";
+    $query = "SELECT * FROM " . $CFG->prefix . "attendance_log WHERE sessionid LIKE $sessionId";
 
     $result = mysqli_query($conn, $query);
 
@@ -856,7 +857,7 @@ function getAttendance($conn, $token, $sessionId)
             {
                 $studentId = $row['studentid'];
 
-                $query2 = "SELECT * FROM mdl_user WHERE id LIKE $studentId";
+                $query2 = "SELECT * FROM " . $CFG->prefix . "user WHERE id LIKE $studentId";
 
                 $result2 = mysqli_query($conn, $query2);
 
@@ -873,7 +874,7 @@ function getAttendance($conn, $token, $sessionId)
                         {
                             $statusId = $row['statusid'];
 
-                            $query3 = "SELECT * FROM mdl_attendance_statuses WHERE id LIKE $statusId";
+                            $query3 = "SELECT * FROM " . $CFG->prefix . "attendance_statuses WHERE id LIKE $statusId";
 
                             $result3 = mysqli_query($conn, $query3);
 
@@ -900,7 +901,7 @@ function getAttendance($conn, $token, $sessionId)
 
                             $takenById = $row['takenby'];
 
-                            $query3 = "SELECT * FROM mdl_user WHERE id LIKE $takenById";
+                            $query3 = "SELECT * FROM " . $CFG->prefix . "user WHERE id LIKE $takenById";
 
                             $result3 = mysqli_query($conn, $query3);
 
@@ -1024,7 +1025,7 @@ function test($conn, $userName, $password)
     }
 
 
-    $query = "SELECT roleid FROM mdl_role_assignments WHERE userid LIKE $userId LIMIT 1";
+    $query = "SELECT roleid FROM " . $CFG->prefix . "role_assignments WHERE userid LIKE $userId LIMIT 1";
 
     $result = mysqli_query($conn, $query);
 
@@ -1041,7 +1042,7 @@ function test($conn, $userName, $password)
             {
                 $roleId = $row['roleid'];
             }
-            $query2 = "SELECT shortname FROM mdl_role WHERE id LIKE $roleId LIMIT 1";
+            $query2 = "SELECT shortname FROM " . $CFG->prefix . "role WHERE id LIKE $roleId LIMIT 1";
 
             $result2 = mysqli_query($conn, $query2);
 
@@ -1143,8 +1144,9 @@ function test($conn, $userName, $password)
 
 function addSession($conn, $attendanceId, $sessionDate, $duration, $timeModified, $description)
 {
+    global $CFG;
 
-    $query = "INSERT INTO mdl_attendance_sessions (id,attendanceid,groupid,sessdate,duration,lasttaken,lasttakenby,timemodified,description,descriptionformat,studentscanmark) VALUES(NULL,'$attendanceId',0,'$sessionDate','$duration',NULL,0,'$timeModified','$description',1,0)";
+    $query = "INSERT INTO " . $CFG->prefix . "attendance_sessions (id,attendanceid,groupid,sessdate,duration,lasttaken,lasttakenby,timemodified,description,descriptionformat,studentscanmark) VALUES(NULL,'$attendanceId',0,'$sessionDate','$duration',NULL,0,'$timeModified','$description',1,0)";
 
     $result = mysqli_query($conn, $query);
 
@@ -1192,7 +1194,7 @@ function addAttendance($conn, $sessionId, $statusSet, $takenBy, $time, $data)
 
     $values = rtrim($values, ',');
 
-    $query = "INSERT INTO mdl_attendance_log (id,sessionid,studentid,statusid,statusset,timetaken,takenby,remarks) VALUES $values";
+    $query = "INSERT INTO " . $CFG->prefix . "attendance_log (id,sessionid,studentid,statusid,statusset,timetaken,takenby,remarks) VALUES $values";
 
     //echo $query;
 
@@ -1206,7 +1208,7 @@ function addAttendance($conn, $sessionId, $statusSet, $takenBy, $time, $data)
     } else
     {
 
-        $query = "UPDATE mdl_attendance_sessions SET `lasttaken`=$timeTaken,`lasttakenby`=$takenBy,`timemodified`=$timeTaken WHERE `id` LIKE $sessionId";
+        $query = "UPDATE " . $CFG->prefix . "attendance_sessions SET `lasttaken`=$timeTaken,`lasttakenby`=$takenBy,`timemodified`=$timeTaken WHERE `id` LIKE $sessionId";
 
         $result = mysqli_query($conn, $query);
 
@@ -1233,6 +1235,8 @@ function addAttendance($conn, $sessionId, $statusSet, $takenBy, $time, $data)
 
 function updateAttendance($conn, $sessionId, $takenBy, $time, $data)
 {
+    global $CFG;
+
     $jsonData = $data;
 
     $jsonPure = html_entity_decode($jsonData);
@@ -1252,7 +1256,7 @@ function updateAttendance($conn, $sessionId, $takenBy, $time, $data)
 
     for ($i = 0; $i < count($studentId); $i++)
     {
-        $query = "UPDATE mdl_attendance_log SET statusid='$statusId[$i]', timetaken='$timeTaken[$i]', remarks='$remarks[$i]', takenby='$takenBy' WHERE studentid LIKE '$studentId[$i]' AND sessionid LIKE '$sessionId'";
+        $query = "UPDATE " . $CFG->prefix . "attendance_log SET statusid='$statusId[$i]', timetaken='$timeTaken[$i]', remarks='$remarks[$i]', takenby='$takenBy' WHERE studentid LIKE '$studentId[$i]' AND sessionid LIKE '$sessionId'";
 
         $result = mysqli_query($conn, $query);
 
@@ -1265,7 +1269,7 @@ function updateAttendance($conn, $sessionId, $takenBy, $time, $data)
         {
             if ($i == count($studentId) - 1)
             {
-                $query = "UPDATE mdl_attendance_sessions SET `lasttaken`=$time,`lasttakenby`=$takenBy,`timemodified`=$time WHERE `id` LIKE $sessionId";
+                $query = "UPDATE " . $CFG->prefix . "attendance_sessions SET `lasttaken`=$time,`lasttakenby`=$takenBy,`timemodified`=$time WHERE `id` LIKE $sessionId";
 
                 $result = mysqli_query($conn, $query);
 
@@ -1370,9 +1374,11 @@ function getCourses($conn, $token, $userId)
 
 function getSessions($conn, $courseId, $attendanceTypeId, $flag = FALSE)
 {
+    global $CFG;
+
     $sessions = array();
 
-    $query = "SELECT * FROM mdl_attendance WHERE course LIKE $courseId AND id LIKE $attendanceTypeId";
+    $query = "SELECT * FROM " . $CFG->prefix . "attendance WHERE course LIKE $courseId AND id LIKE $attendanceTypeId";
 
 
     $result = mysqli_query($conn, $query);
@@ -1392,7 +1398,7 @@ function getSessions($conn, $courseId, $attendanceTypeId, $flag = FALSE)
 
                 $val = $row['id'];
 
-                $query2 = "SELECT * FROM mdl_attendance_sessions WHERE attendanceid LIKE $val";
+                $query2 = "SELECT * FROM " . $CFG->prefix . "attendance_sessions WHERE attendanceid LIKE $val";
 
 //echo $query2."<br/><br/><br/>";
 
@@ -1547,16 +1553,16 @@ function deleteSession($conn, $userName, $password, $sessionId)
     }
 
 
-    $query = "SELECT * FROM mdl_attendance_log WHERE sessionid LIKE $sessionId";
+    $query = "SELECT * FROM " . $CFG->prefix . "attendance_log WHERE sessionid LIKE $sessionId";
 
     $result = mysqli_query($conn, $query);
 
     if (!mysqli_num_rows($result) > 0)
     {
-        $query = "DELETE FROM mdl_attendance_sessions WHERE id LIKE $sessionId";
+        $query = "DELETE FROM " . $CFG->prefix . "attendance_sessions WHERE id LIKE $sessionId";
     } else
     {
-        $query = "DELETE mdl_attendance_sessions, mdl_attendance_log FROM mdl_attendance_sessions INNER JOIN mdl_attendance_log ON mdl_attendance_sessions.id = mdl_attendance_log.sessionid WHERE mdl_attendance_sessions.id LIKE '$sessionId'";
+        $query = "DELETE " . $CFG->prefix . "attendance_sessions, " . $CFG->prefix . "attendance_log FROM " . $CFG->prefix . "attendance_sessions INNER JOIN " . $CFG->prefix . "attendance_log ON " . $CFG->prefix . "attendance_sessions.id = " . $CFG->prefix . "attendance_log.sessionid WHERE " . $CFG->prefix . "attendance_sessions.id LIKE '$sessionId'";
 
     }
 
@@ -1585,11 +1591,13 @@ function deleteSession($conn, $userName, $password, $sessionId)
 
 function getAttendanceType($conn, $courseId)
 {
+    global $CFG;
+
     $attendance = array();
 
     $sessions = array();
 
-    $query = "SELECT * FROM mdl_attendance WHERE course LIKE '$courseId'";
+    $query = "SELECT * FROM " . $CFG->prefix . "attendance WHERE course LIKE '$courseId'";
 
     $result = mysqli_query($conn, $query);
 
@@ -1622,7 +1630,9 @@ function getAttendanceType($conn, $courseId)
 
 function getAttendanceStatus($conn, $attendanceId)
 {
-    $query = "SELECT * FROM mdl_attendance_statuses WHERE attendanceid LIKE $attendanceId";
+    global $CFG;
+
+    $query = "SELECT * FROM " . $CFG->prefix . "attendance_statuses WHERE attendanceid LIKE $attendanceId";
 
 
     $result = mysqli_query($conn, $query);
