@@ -1,9 +1,21 @@
 <?php
+/**
+ * Created by Rutvik Mehta
+ * GitHub Profile: https://github.com/rutvik106
+ */
 
-//this is moodle app webservice for attendance module
-//include basic functions for attendance get,set,insert,update,delete,modify....
-//includes DB connection
+// This webservice is developed specially for Moodle Attendance App
+// (https://play.google.com/store/apps/details?id=com.rutvik.moodleattendanceapp).
+// include basic functions for attendance get,set,insert,update,delete,modify....
+// includes DB connection
 
+// Set your moodle directory
+// eg: if you use "yourhostname.com/moodle" to open your modle use define('MOODLE_DIR', '/moodle');
+//     if you use "yourhostname.com/xyz" to open your modle use define('MOODLE_DIR', '/xyz');
+//     if you use just "yourhostname.com" to open moodle use define('MOODLE_DIR', '');
+define('MOODLE_DIR', '/moodle');
+
+// Set path to your moodle config.php file here.
 require_once('config.php');
 
 global $CFG;
@@ -329,7 +341,7 @@ function login($conn, $userName, $password)
     $profilePic = "";
     $courses = array();
 
-    $url = "http://" . $CFG->dbhost . "/moodle/login/token.php?username=$userName&password=$password&service=moodle_mobile_app";
+    $url = "http://" . $CFG->dbhost . "" . MOODLE_DIR . "/login/token.php?username=$userName&password=$password&service=moodle_mobile_app";
     $data = file_get_contents($url);
     $result = json_decode($data, TRUE);
     //var_dump($result);
@@ -343,7 +355,7 @@ function login($conn, $userName, $password)
         die($post_data);
     }
 
-    $url = "http://" . $CFG->dbhost . "/moodle/webservice/rest/server.php?wstoken=$token&wsfunction=moodle_webservice_get_siteinfo";
+    $url = "http://" . $CFG->dbhost . "" . MOODLE_DIR . "/webservice/rest/server.php?wstoken=$token&wsfunction=moodle_webservice_get_siteinfo";
     $data = file_get_contents($url);
     //$result = json_decode($data, true);
     $response = new SimpleXMLElement($data);
@@ -393,7 +405,7 @@ function login($conn, $userName, $password)
                 foreach ($child2->children() as $child3)
                 {
                     $profilePic = (string)$child3;
-                    $profilePic = str_replace("" . $CFG->dbhost . "/moodle", "moodle.gperi.ac.in/moodle", $profilePic);
+                    $profilePic = str_replace($CFG->dbhost, $_SERVER["HTTP_HOST"], $profilePic);
                 }
             }
             /*foreach($child2->children() as $child3)
@@ -446,7 +458,7 @@ function login($conn, $userName, $password)
     }
 
 
-    $url = "http://" . $CFG->dbhost . "/moodle/webservice/rest/server.php?wstoken=$token&wsfunction=moodle_user_get_users_by_id&userids[0]=$userId";
+    $url = "http://" . $CFG->dbhost . "" . MOODLE_DIR . "/webservice/rest/server.php?wstoken=$token&wsfunction=moodle_user_get_users_by_id&userids[0]=$userId";
 
     $data = file_get_contents($url);
     //$result = json_decode($data, true);
@@ -504,7 +516,7 @@ function login($conn, $userName, $password)
                             if ($roleShortName != "student")
                             {
 
-                                $url2 = "http://" . $CFG->dbhost . "/moodle/webservice/rest/server.php?wstoken=$token&wsfunction=moodle_enrol_get_enrolled_users&courseid=$courseId";
+                                $url2 = "http://" . $CFG->dbhost . "" . MOODLE_DIR . "/webservice/rest/server.php?wstoken=$token&wsfunction=moodle_enrol_get_enrolled_users&courseid=$courseId";
 
                                 $data2 = file_get_contents($url2);
                                 //$result = json_decode($data, true);
@@ -654,7 +666,7 @@ function login($conn, $userName, $password)
 
 */
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////												
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////                                                
                                             $query3 = "SELECT * FROM " . $CFG->prefix . "attendance_statuses WHERE attendanceid LIKE $val";
 
                                             $result3 = mysqli_query($conn, $query3);
@@ -812,7 +824,7 @@ function getAttendance($conn, $token, $sessionId)
 
     $userId = "";
 
-    $url = "http://" . $CFG->dbhost . "/moodle/webservice/rest/server.php?wstoken=$token&wsfunction=moodle_webservice_get_siteinfo";
+    $url = "http://" . $CFG->dbhost . "" . MOODLE_DIR . "/webservice/rest/server.php?wstoken=$token&wsfunction=moodle_webservice_get_siteinfo";
     $data = file_get_contents($url);
     //$result = json_decode($data, true);
     $response = new SimpleXMLElement($data);
@@ -957,14 +969,14 @@ function test($conn, $userName, $password)
     $profilePic = "";
     $courses;
 
-    $url = "http://" . $CFG->dbhost . "/moodle/login/token.php?username=$userName&password=$password&service=moodle_mobile_app";
+    $url = "http://" . $CFG->dbhost . "" . MOODLE_DIR . "/login/token.php?username=$userName&password=$password&service=moodle_mobile_app";
     $data = file_get_contents($url);
     $result = json_decode($data, TRUE);
     //var_dump($result);
     $token = $result['token'];
 
 
-    $url = "http://" . $CFG->dbhost . "/moodle/webservice/rest/server.php?wstoken=$token&wsfunction=moodle_webservice_get_siteinfo";
+    $url = "http://" . $CFG->dbhost . "" . MOODLE_DIR . "/webservice/rest/server.php?wstoken=$token&wsfunction=moodle_webservice_get_siteinfo";
     $data = file_get_contents($url);
     //$result = json_decode($data, true);
     $response = new SimpleXMLElement($data);
@@ -1066,7 +1078,7 @@ function test($conn, $userName, $password)
     }
 
 
-    $url = "http://" . $CFG->dbhost . "/moodle/webservice/rest/server.php?wstoken=56840502d9debd802e2dc6213f10b8c2&wsfunction=moodle_user_get_users_by_id&userids[0]=$userId";
+    $url = "http://" . $CFG->dbhost . "" . MOODLE_DIR . "/webservice/rest/server.php?wstoken=56840502d9debd802e2dc6213f10b8c2&wsfunction=moodle_user_get_users_by_id&userids[0]=$userId";
 
     $data = file_get_contents($url);
     //$result = json_decode($data, true);
@@ -1301,7 +1313,7 @@ function getCourses($conn, $token, $userId)
 
     $courses = array();
 
-    $url = "http://" . $CFG->dbhost . "/moodle/webservice/rest/server.php?wstoken=$token&wsfunction=moodle_user_get_users_by_id&userids[0]=$userId";
+    $url = "http://" . $CFG->dbhost . "" . MOODLE_DIR . "/webservice/rest/server.php?wstoken=$token&wsfunction=moodle_user_get_users_by_id&userids[0]=$userId";
 
     $data = file_get_contents($url);
     //$result = json_decode($data, true);
@@ -1449,7 +1461,7 @@ function getEnrolledStudents($conn, $token, $courseId)
 
     $students = array();
 
-    $url2 = "http://" . $CFG->dbhost . "/moodle/webservice/rest/server.php?wstoken=$token&wsfunction=moodle_enrol_get_enrolled_users&courseid=$courseId";
+    $url2 = "http://" . $CFG->dbhost . "" . MOODLE_DIR . "/webservice/rest/server.php?wstoken=$token&wsfunction=moodle_enrol_get_enrolled_users&courseid=$courseId";
 
     $data2 = file_get_contents($url2);
     //$result = json_decode($data, true);
@@ -1538,7 +1550,7 @@ function deleteSession($conn, $userName, $password, $sessionId)
 {
     global $CFG;
 
-    $url = "http://" . $CFG->dbhost . "/moodle/login/token.php?username=$userName&password=$password&service=moodle_mobile_app";
+    $url = "http://" . $CFG->dbhost . "" . MOODLE_DIR . "/login/token.php?username=$userName&password=$password&service=moodle_mobile_app";
     $data = file_get_contents($url);
     $result = json_decode($data, TRUE);
     //var_dump($result);
